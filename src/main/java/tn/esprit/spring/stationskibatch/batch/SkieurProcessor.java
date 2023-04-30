@@ -3,11 +3,15 @@ package tn.esprit.spring.stationskibatch.batch;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
+import tn.esprit.spring.stationskibatch.entities.Abonnement;
 import tn.esprit.spring.stationskibatch.entities.Skieur;
+import tn.esprit.spring.stationskibatch.entities.TypeAbonnement;
 import tn.esprit.spring.stationskibatch.repositories.SkieurRepository;
 
 import java.time.LocalDate;
 import java.util.concurrent.ThreadLocalRandom;
+
+import static tn.esprit.spring.stationskibatch.entities.TypeAbonnement.MENSUEL;
 
 @Slf4j
 @Component
@@ -19,40 +23,48 @@ public class SkieurProcessor implements ItemProcessor<Skieur, Skieur> {
 	public Skieur process(Skieur skieur) {
 
 		///récupérer la date début d'abonnement relative à la date du jour
-		LocalDate dateDebutAbonnement = LocalDate.now();
 		// calculer par défaut la date fin pour un abonnement mensuel
-		LocalDate dateFinAbonnement = LocalDate.now().plusMonths(1);
 		// affecter par défaut le prix d'abonnement pour un abonnement mensuel
-		Float prixAbon = new Float(60);
 		Long numAbonnement = ThreadLocalRandom.current().nextLong(1000000); // numéro abonnement généré automatiquement
+		LocalDate dateDebutAbonnement = LocalDate.now();
+		LocalDate dateFinAbonnement = null;
+		Float prixAbon = null;
+		// calculer la date fin  et affecter  le prix d'abonnement
+		// pour les deux autres types d'abonnement
 
 		// calculer la date fin  et affecter  le prix d'abonnement
 		// pour les deux autres types d'abonnement
 
-		switch (skieur.getAbonnement().getTypeAbon().name()) {
-			case "ANNUEL":
-				dateFinAbonnement = LocalDate.now().plusMonths(7);
-				prixAbon = 600F;
-				skieur.getAbonnement().setPrixAbon(prixAbon);
+		switch (skieur.getTypeAbon()) {
 
-				break;
-			case "MENSUEL":
-				dateFinAbonnement = LocalDate.now().plusMonths(1);
-				prixAbon = 60F;
-				skieur.getAbonnement().setPrixAbon(prixAbon);
+			case "ANNUEL":
+				dateDebutAbonnement = LocalDate.now();
+				dateFinAbonnement = LocalDate.now().plusMonths(12);
+				prixAbon = 600F;
+				Abonnement ab=Abonnement.builder().numAbon(numAbonnement).dateDebut(dateDebutAbonnement).dateFin(dateFinAbonnement).prixAbon(prixAbon).typeAbon(TypeAbonnement.ANNUEL).build();
+				skieur.setAbonnement(ab);
 
 				break;
 			case "SEMESTRIEL":
-				dateFinAbonnement = LocalDate.now().plusYears(1).plusMonths(2);
+				dateDebutAbonnement = LocalDate.now();
+				dateFinAbonnement = LocalDate.now().plusMonths(6);
 				prixAbon = 300F;
-				skieur.getAbonnement().setPrixAbon(prixAbon);
-			default:
+				Abonnement ab2=Abonnement.builder().numAbon(numAbonnement).dateDebut(dateDebutAbonnement).dateFin(dateFinAbonnement).prixAbon(prixAbon).typeAbon(TypeAbonnement.ANNUEL).build();
+				skieur.setAbonnement(ab2);
+			case "MENSUEL":
+				dateDebutAbonnement = LocalDate.now();
+				dateFinAbonnement = LocalDate.now().plusMonths(1);
+				prixAbon = 60F;
+				Abonnement ab3=Abonnement.builder().numAbon(numAbonnement).dateDebut(dateDebutAbonnement).dateFin(dateFinAbonnement).prixAbon(prixAbon).typeAbon(TypeAbonnement.ANNUEL).build();
+				skieur.setAbonnement(ab3);
 				break;
 		}
+		Abonnement a = Abonnement.builder().numAbon(numAbonnement).dateDebut(dateDebutAbonnement)
+				.dateFin(dateFinAbonnement).prixAbon(prixAbon).typeAbon(MENSUEL).build();
 
 		//TODO 6
-
 		return skieur;
+
 	}
 
 }
